@@ -3,7 +3,10 @@ use bevy::{prelude::*, render::camera::ScalingMode};
 use bevy_inspector_egui::prelude::ReflectInspectorOptions;
 use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_inspector_egui::InspectorOptions;
+use enemy::EnemyPlugin;
 use pig::PigPlugin;
+use projectile::ProjectilePlugin;
+
 use ui::GameUI;
 
 #[derive(Component, InspectorOptions, Default, Reflect)]
@@ -17,7 +20,9 @@ pub struct Player {
 #[reflect(Resource)]
 pub struct Money(pub f32);
 
+mod enemy;
 mod pig;
+mod projectile;
 mod ui;
 
 fn main() {
@@ -27,7 +32,7 @@ fn main() {
                 .set(ImagePlugin::default_nearest())
                 .set(WindowPlugin {
                     primary_window: Some(Window {
-                        title: "Logic Farming Roguelike".into(),
+                        title: "Shape Battle".into(),
                         resolution: (640.0, 480.0).into(),
                         resizable: false,
                         ..default()
@@ -39,10 +44,11 @@ fn main() {
         .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
         )
+        .insert_resource(ClearColor(Color::rgb(0.9, 0.3, 0.6)))
         .insert_resource(Money(100.0))
         .register_type::<Money>()
         .register_type::<Player>()
-        .add_plugins((PigPlugin, GameUI))
+        .add_plugins((PigPlugin, GameUI, ProjectilePlugin, EnemyPlugin))
         .add_systems(Startup, setup)
         .add_systems(Update, character_movement)
         .run();
@@ -58,7 +64,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn(camera);
 
-    let texture = asset_server.load("character.png");
+    let texture = asset_server.load("player.png");
 
     commands.spawn((
         SpriteBundle {
