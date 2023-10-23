@@ -1,29 +1,25 @@
-use bevy::input::common_conditions::input_toggle_active;
 use bevy::{prelude::*, render::camera::ScalingMode};
-use bevy_inspector_egui::prelude::ReflectInspectorOptions;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
-use bevy_inspector_egui::InspectorOptions;
 use enemy::EnemyPlugin;
+use enemy_spawner::EnemySpawnerPlugin;
 use pig::PigPlugin;
+use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
+use drops::DropsPlugin;
+use crate::player::Player;
 
 use ui::GameUI;
-
-#[derive(Component, InspectorOptions, Default, Reflect)]
-#[reflect(Component, InspectorOptions)]
-pub struct Player {
-    #[inspector(min = 0.0)]
-    pub speed: f32,
-}
 
 #[derive(Resource, Default, Reflect)]
 #[reflect(Resource)]
 pub struct Money(pub f32);
 
 mod enemy;
+mod enemy_spawner;
 mod pig;
+mod player;
 mod projectile;
 mod ui;
+mod drops;
 
 fn main() {
     App::new()
@@ -33,7 +29,7 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Shape Battle".into(),
-                        resolution: (640.0, 480.0).into(),
+                        resolution: (1200.0, 750.0).into(),
                         resizable: false,
                         ..default()
                     }),
@@ -41,16 +37,21 @@ fn main() {
                 })
                 .build(),
         )
-        .add_plugins(
+/*         .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
-        )
+        ) */
         .insert_resource(ClearColor(Color::rgb(0.9, 0.3, 0.6)))
         .insert_resource(Money(100.0))
         .register_type::<Money>()
-        .register_type::<Player>()
-        .add_plugins((PigPlugin, GameUI, ProjectilePlugin, EnemyPlugin))
+        .add_plugins((
+            PigPlugin,
+            GameUI,
+            ProjectilePlugin,
+            EnemyPlugin,
+            PlayerPlugin,
+            EnemySpawnerPlugin
+        ))
         .add_systems(Startup, setup)
-        .add_systems(Update, character_movement)
         .run();
 }
 
@@ -69,32 +70,15 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         SpriteBundle {
             texture,
+            transform:Transform::from_scale(Vec3::splat(1.0)),
             ..default()
         },
-        Player { speed: 100.0 },
+        Player {
+            speed: 50.0,
+            health: 200.0,
+        },
         Name::new("Player"),
     ));
-}
 
-fn character_movement(
-    mut characters: Query<(&mut Transform, &Player)>,
-    input: Res<Input<KeyCode>>,
-    time: Res<Time>,
-) {
-    for (mut transform, player) in &mut characters {
-        let movement_amount = player.speed * time.delta_seconds();
-
-        if input.pressed(KeyCode::W) {
-            transform.translation.y += movement_amount;
-        }
-        if input.pressed(KeyCode::S) {
-            transform.translation.y -= movement_amount;
-        }
-        if input.pressed(KeyCode::D) {
-            transform.translation.x += movement_amount;
-        }
-        if input.pressed(KeyCode::A) {
-            transform.translation.x -= movement_amount;
-        }
-    }
+    commands.spawn(enemy_spawner::EnemySpawner{cooldown:1.,timer:1.});
 }

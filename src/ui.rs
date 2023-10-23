@@ -1,16 +1,19 @@
 use bevy::prelude::*;
 
 use crate::Money;
-
+use crate::player::Player;
 pub struct GameUI;
 
 #[derive(Component)]
 pub struct MoneyText;
 
+#[derive(Component)]
+pub struct PlayerText;
+
 impl Plugin for GameUI {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, spawn_game_ui)
-            .add_systems(Update, update_money_ui);
+            .add_systems(Update, (update_money_ui,update_health_ui));
     }
 }
 
@@ -44,11 +47,33 @@ fn spawn_game_ui(mut commands: Commands) {
                 },
                 MoneyText,
             ));
+        })        .with_children(|commands| {
+            commands.spawn((
+                TextBundle {
+                    text: Text::from_section(
+                        "Health!",
+                        TextStyle {
+                            font_size: 32.0,
+                            ..default()
+                        },
+                    ),
+                    ..default()
+                },
+                PlayerText,
+            ));
         });
 }
 
 fn update_money_ui(mut texts: Query<&mut Text, With<MoneyText>>, money: Res<Money>) {
     for mut text in &mut texts {
-        text.sections[0].value = format!("Money: ${:?}", money.0);
+        text.sections[0].value = format!("Money: ${:?}\n", money.0);
     }
+}
+
+fn update_health_ui(mut texts: Query<&mut Text, With<PlayerText>>, player:Query<&Player>){
+    let player = player.single();
+    for mut text in &mut texts {
+        text.sections[0].value = format!("Health: {:?} HP",player.health );
+    }
+
 }
