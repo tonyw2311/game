@@ -135,7 +135,6 @@ fn projectile_collision(
                 .translation
                 .distance(projectile_transform.translation);
             if distance < 10. {
-                println!("Enemy hit player! Game Over!");
                 enemy.health -= 25.0;
                 commands
                     .entity(parent)

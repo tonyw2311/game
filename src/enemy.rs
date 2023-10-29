@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
 
-use crate::{Money, Player};
+use crate::{drops::{Drops, DropsParent},  Player};
 
 pub struct EnemyPlugin;
 
@@ -70,41 +70,52 @@ fn enemy_lifetime(
     mut enemies: Query<(Entity, &mut Transform, &mut Enemy), Without<Player>>,
     player_transform: Query<&Transform, With<Player>>,
     parent: Query<Entity, With<EnemyParent>>,
-    mut money: ResMut<Money>,
+    drops_parent: Query<Entity, With<DropsParent>>,
     asset_server: Res<AssetServer>,
 ) {
     let parent = parent.single();
+    let drops_parent = drops_parent.single();
     let player_transform = player_transform.single();
     let mut rng = rand::thread_rng();
 
     for (enemy_entity, mut enemy_transform, enemy) in &mut enemies {
         if enemy.health <= 0.0 {
-            money.0 += 15.0;
 
-            let texture = asset_server.load("heart.png");
-            let heart_transform = &mut enemy_transform.clone();
-            heart_transform.scale = Vec3::splat(1.);
+            let transform = &mut enemy_transform.clone();
+            transform.translation.z = -1.0;
+            transform.scale = Vec3::splat(1.);
 
-            if rng.gen_bool(0.5){
-                commands.spawn(
-                    SpriteBundle {
-                        texture:asset_server.load("coin.png"),
-                        transform: *enemy_transform,
-                        ..default()
-                    },
-                );
+            if rng.gen_bool(0.33){
+            if rng.gen_bool(0.5) {
+                commands.entity(drops_parent).with_children(|commands| {
+                    commands.spawn((
+                        SpriteBundle {
+                            texture:asset_server.load("heart.png"),
+                            transform: *transform,
+                            ..default()
+                        },
+                        Drops {
+                            drop_type:"health".to_string(),
+                        },
+                        Name::new("Health"),
+                    ));
+                });
+            } else {
+                commands.entity(drops_parent).with_children(|commands| {
+                    commands.spawn((
+                        SpriteBundle {
+                            texture:asset_server.load("coin.png"),
+                            transform: *transform,
+                            ..default()
+                        },
+                        Drops {
+                            drop_type:"coin".to_string(),
+                        },
+                        Name::new("Coin"),
+                    ));
+                });
             }
-            else{
-                commands.spawn(
-                    SpriteBundle {
-                        texture,
-                        transform: *enemy_transform,
-                        ..default()
-                    },
-                );
-            }
-
-
+        }
             commands.entity(parent).remove_children(&[enemy_entity]);
             commands.entity(enemy_entity).despawn();
         }

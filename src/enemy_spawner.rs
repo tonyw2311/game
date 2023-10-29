@@ -1,4 +1,3 @@
-use std::thread::spawn;
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use rand::Rng;
@@ -39,12 +38,19 @@ pub fn update_spawning(
                 return;
             };
             spawner.timer = spawner.cooldown;
-            let texture = asset_server.load("triangle.png");
-
 
             let mut spawn_transform = Transform::from_scale(Vec3::splat(5.));
 
             let mut rng = rand::thread_rng();
+            let texture;
+            if rng.gen_bool(0.5){
+                texture = asset_server.load("triangle.png");
+            }
+            else{
+                texture = asset_server.load("square.png");
+                
+            }
+
 
             spawn_transform.translation = Vec3::new(rng.gen_range(-primary.height()/2.0..primary.height()/2.),rng.gen_range(-primary.width()/2.0..primary.width()/2.0),0.);
             spawn_transform.scale = Vec3::splat(rng.gen_range(1.0..3.0));
@@ -58,7 +64,7 @@ pub fn update_spawning(
                     },
                     Enemy {
                         health: 100.0,
-                        speed: 20.0,
+                        speed: 20.0+ 20.*(time.elapsed_seconds()/60.).floor(),
                         collision_damage:1.,
                     },
                     Name::new("Enemy"),

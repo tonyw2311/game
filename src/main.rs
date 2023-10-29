@@ -49,7 +49,8 @@ fn main() {
             ProjectilePlugin,
             EnemyPlugin,
             PlayerPlugin,
-            EnemySpawnerPlugin
+            EnemySpawnerPlugin,
+            DropsPlugin
         ))
         .add_systems(Startup, setup)
         .run();
