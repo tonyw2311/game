@@ -28,7 +28,7 @@ fn spawn_game_ui(mut commands: Commands) {
                     padding: UiRect::all(Val::Px(10.0)),
                     ..default()
                 },
-                background_color: Color::BLUE.into(),
+                //background_color: Color::BLUE.into(),
                 ..default()
             },
             Name::new("UI Root"),

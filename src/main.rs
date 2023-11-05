@@ -1,11 +1,12 @@
-use bevy::{prelude::*, render::camera::ScalingMode};
+use crate::player::Player;
+use bevy::{prelude::*, render::camera::ScalingMode, sprite::MaterialMesh2dBundle};
+use drops::DropsPlugin;
 use enemy::EnemyPlugin;
 use enemy_spawner::EnemySpawnerPlugin;
 use pig::PigPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
-use drops::DropsPlugin;
-use crate::player::Player;
+use tilemap::TileMapPlugin;
 
 use ui::GameUI;
 
@@ -13,13 +14,14 @@ use ui::GameUI;
 #[reflect(Resource)]
 pub struct Money(pub f32);
 
+mod drops;
 mod enemy;
 mod enemy_spawner;
 mod pig;
 mod player;
 mod projectile;
+mod tilemap;
 mod ui;
-mod drops;
 
 fn main() {
     App::new()
@@ -29,15 +31,14 @@ fn main() {
                 .set(WindowPlugin {
                     primary_window: Some(Window {
                         title: "Shape Battle".into(),
-                        resolution: (1200.0, 750.0).into(),
-                        resizable: false,
+                        resizable: true,
                         ..default()
                     }),
                     ..default()
                 })
                 .build(),
         )
-/*         .add_plugins(
+        /*         .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
         ) */
         .insert_resource(ClearColor(Color::rgb(0.9, 0.3, 0.6)))
@@ -50,13 +51,18 @@ fn main() {
             EnemyPlugin,
             PlayerPlugin,
             EnemySpawnerPlugin,
-            DropsPlugin
+            DropsPlugin,
+            TileMapPlugin,
         ))
         .add_systems(Startup, setup)
         .run();
 }
 
-fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     let mut camera = Camera2dBundle::default();
 
     camera.projection.scaling_mode = ScalingMode::AutoMin {
@@ -66,12 +72,11 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands.spawn(camera);
 
-    let texture = asset_server.load("player.png");
-
     commands.spawn((
-        SpriteBundle {
-            texture,
-            transform:Transform::from_scale(Vec3::splat(1.0)),
+        MaterialMesh2dBundle {
+            mesh: meshes.add(shape::Circle::new(4.).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::DARK_GRAY)),
+            transform: Transform::from_xyz(0., 0., 0.),
             ..default()
         },
         Player {
@@ -81,5 +86,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         Name::new("Player"),
     ));
 
-    commands.spawn(enemy_spawner::EnemySpawner{cooldown:1.,timer:1.});
+    commands.spawn(enemy_spawner::EnemySpawner {
+        cooldown: 1.,
+        timer: 1.,
+    });
 }

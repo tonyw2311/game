@@ -1,8 +1,9 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_inspector_egui::prelude::ReflectInspectorOptions;
 use bevy_inspector_egui::InspectorOptions;
 
 use crate::enemy::Enemy;
+use crate::tilemap::{TileCollider, TILE_SIZE};
 
 pub struct PlayerPlugin;
 
@@ -25,21 +26,31 @@ fn character_movement(
     mut characters: Query<(&mut Transform, &Player)>,
     input: Res<Input<KeyCode>>,
     time: Res<Time>,
+    wall_query: Query<&Transform, (With<TileCollider>, Without<Player>)>,
 ) {
     for (mut transform, player) in &mut characters {
         let movement_amount = player.speed * time.delta_seconds();
-
+        let mut y_del = 0.;
+        let mut x_del = 0.;
         if input.pressed(KeyCode::W) {
-            transform.translation.y += movement_amount;
+            y_del += movement_amount;
         }
         if input.pressed(KeyCode::S) {
-            transform.translation.y -= movement_amount;
+            y_del -= movement_amount;
         }
         if input.pressed(KeyCode::D) {
-            transform.translation.x += movement_amount;
+            x_del += movement_amount;
         }
         if input.pressed(KeyCode::A) {
-            transform.translation.x -= movement_amount;
+            x_del -= movement_amount;
+        }
+        let target = transform.translation + Vec3::new(x_del, 0.0, 0.0);
+        if wall_collision_check(target, &wall_query) {
+            transform.translation = target;
+        }
+        let target = transform.translation + Vec3::new(0.0, y_del, 0.0);
+        if wall_collision_check(target, &wall_query) {
+            transform.translation = target;
         }
     }
 }
@@ -59,6 +70,25 @@ fn character_collision(
             }
         }
     }
+}
+
+
+fn wall_collision_check(
+    target_player_pos: Vec3,
+    wall_query: &Query<&Transform, (With<TileCollider>, Without<Player>)>,
+) -> bool {
+    for wall_transform in wall_query.iter() {
+        let collision = collide(
+            target_player_pos,
+            Vec2::splat(TILE_SIZE * 0.9),
+            wall_transform.translation,
+            Vec2::splat(TILE_SIZE),
+        );
+        if collision.is_some() {
+            return false;
+        }
+    }
+    true
 }
 
 /*
