@@ -1,7 +1,6 @@
 
 
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::PrimaryWindow};
-use bevy_inspector_egui::egui::emath::Numeric;
 use rand::Rng;
 
 use crate::enemy::{Enemy,EnemyParent};

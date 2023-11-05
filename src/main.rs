@@ -7,6 +7,7 @@ use pig::PigPlugin;
 use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use tilemap::TileMapPlugin;
+use map_gen::MapGenPlugin;
 
 use ui::GameUI;
 
@@ -22,6 +23,7 @@ mod player;
 mod projectile;
 mod tilemap;
 mod ui;
+mod map_gen;
 
 fn main() {
     App::new()
@@ -53,6 +55,7 @@ fn main() {
             EnemySpawnerPlugin,
             DropsPlugin,
             TileMapPlugin,
+            MapGenPlugin
         ))
         .add_systems(Startup, setup)
         .run();
