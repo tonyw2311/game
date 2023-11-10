@@ -5,6 +5,8 @@ use std::{
 };
 
 use bevy::{prelude::*, window::PrimaryWindow};
+use crate::main_menu::GameState;
+
 
 pub const TILE_SIZE: f32 = 8.;
 pub struct TileMapPlugin;
@@ -14,7 +16,7 @@ pub struct TileCollider;
 
 impl Plugin for TileMapPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, create_simple_map);
+        app.add_systems(OnEnter(GameState::Game), create_simple_map);
     }
 }
 

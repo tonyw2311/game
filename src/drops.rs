@@ -2,12 +2,14 @@ use bevy::prelude::*;
 
 use crate::{Money, Player};
 
+
 pub struct DropsPlugin;
+use crate::main_menu::GameState;
 
 impl Plugin for DropsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_drops_parent)
-            .add_systems(Update, drops_lifetime)
+        app.add_systems(OnEnter(GameState::Game), spawn_drops_parent)
+            .add_systems(Update, drops_lifetime.run_if(in_state(GameState::Game)))
             .register_type::<Drops>();
     }
 }

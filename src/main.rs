@@ -8,6 +8,7 @@ use player::PlayerPlugin;
 use projectile::ProjectilePlugin;
 use tilemap::TileMapPlugin;
 use map_gen::MapGenPlugin;
+use main_menu::MainMenuPlugin;
 
 use ui::GameUI;
 
@@ -24,6 +25,7 @@ mod projectile;
 mod tilemap;
 mod ui;
 mod map_gen;
+mod main_menu;
 
 fn main() {
     App::new()
@@ -55,7 +57,8 @@ fn main() {
             EnemySpawnerPlugin,
             DropsPlugin,
             TileMapPlugin,
-            MapGenPlugin
+            MapGenPlugin,
+            MainMenuPlugin
         ))
         .add_systems(Startup, setup)
         .run();
@@ -63,8 +66,8 @@ fn main() {
 
 fn setup(
     mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
+/*     mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>, */
 ) {
     let mut camera = Camera2dBundle::default();
 
@@ -74,6 +77,12 @@ fn setup(
     };
 
     commands.spawn(camera);
+
+   /*  camera.projection.scaling_mode = ScalingMode::AutoMin {
+        min_width: 256.0,
+        min_height: 144.0,
+    };
+
 
     commands.spawn((
         MaterialMesh2dBundle {
@@ -92,5 +101,5 @@ fn setup(
     commands.spawn(enemy_spawner::EnemySpawner {
         cooldown: 1.,
         timer: 1.,
-    });
+    }); */
 }

@@ -2,13 +2,15 @@ use bevy::prelude::*;
 use rand::Rng;
 
 use crate::{drops::{Drops, DropsParent},  Player};
+use crate::main_menu::GameState;
+
 
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_enemy_parent)
-            .add_systems(Update, enemy_lifetime)
+        app.add_systems(OnEnter(GameState::Game), spawn_enemy_parent)
+            .add_systems(Update, enemy_lifetime.run_if(in_state(GameState::Game)))
             .register_type::<Enemy>();
     }
 }

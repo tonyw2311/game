@@ -4,13 +4,14 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle, window::PrimaryWindow};
 use rand::Rng;
 
 use crate::enemy::{Enemy,EnemyParent};
+use crate::main_menu::GameState;
 
 
 pub struct EnemySpawnerPlugin;
 
 impl Plugin for EnemySpawnerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, update_spawning).
+        app.add_systems(Update, update_spawning.run_if(in_state(GameState::Game))).
             register_type::<EnemySpawner>();
     }
 }

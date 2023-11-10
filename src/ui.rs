@@ -2,6 +2,8 @@ use bevy::prelude::*;
 
 use crate::Money;
 use crate::player::Player;
+use crate::main_menu::GameState;
+
 pub struct GameUI;
 
 #[derive(Component)]
@@ -12,8 +14,8 @@ pub struct PlayerText;
 
 impl Plugin for GameUI {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_game_ui)
-            .add_systems(Update, (update_money_ui,update_health_ui));
+        app.add_systems(OnEnter(GameState::Game), spawn_game_ui)
+            .add_systems(Update, (update_money_ui,update_health_ui).run_if(in_state(GameState::Game)));
     }
 }
 
