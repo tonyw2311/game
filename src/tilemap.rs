@@ -27,30 +27,7 @@ fn create_simple_map(
 ) {
     let primary = primary_query.single();
     info!("{}", primary.resolution.physical_width());
-    /*
-    let file = File::open("assets/map.txt").expect("No map file found");
-        for (y, line) in BufReader::new(file).lines().enumerate() {
-            if let Ok(line) = line {
-                for (x, char) in line.chars().enumerate() {
-                    if char == '#' {
-                        let texture = assets.load("wall.png");
 
-                        commands.spawn(SpriteBundle {
-                            texture,
-                            transform: Transform {
-                                translation: Vec3::new(
-                                    x as f32 * 16. - primary.resolution.width() / 10.,
-                                    -(y as f32) * 16. + primary.resolution.height() / 10.,
-                                    100.0,
-                                ),
-                                ..Default::default()
-                            },
-                            ..Default::default()
-                        });
-                    }
-                }
-            }
-        } */
     let mut x = -primary.resolution.width() / 2.;
     let mut y = -primary.resolution.height() / 2.;
 

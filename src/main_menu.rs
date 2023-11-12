@@ -36,40 +36,21 @@ mod game {
     use crate::enemy_spawner;
     use crate::player::Player;
 
-    use super::{despawn_screen, GameState, Volume, TEXT_COLOR};
+    use super::{despawn_screen, GameState};
     use bevy::{prelude::*, render::camera::ScalingMode, sprite::MaterialMesh2dBundle};
 
     // This plugin will contain the game. In this case, it's just be a screen that will
     // display the current settings for 5 seconds before returning to the menu
     pub struct GamePlugin;
 
-    use crate::PigPlugin;
-    use crate::DropsPlugin;
-    use crate::EnemyPlugin;
-    use crate::EnemySpawnerPlugin;
-    use crate::MapGenPlugin;
-    use crate::PlayerPlugin;
-    use crate::ProjectilePlugin;
-    use crate::TileMapPlugin;
-    use crate::GameUI;
 
 
 
     impl Plugin for GamePlugin {
         fn build(&self, app: &mut App) {
             app.add_systems(OnEnter(GameState::Game), game_setup)
-                .add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>)
-                .add_plugins((
-/*                     PigPlugin,
-                    GameUI,
-                    ProjectilePlugin,
-                    EnemyPlugin,
-                    PlayerPlugin,
-                    EnemySpawnerPlugin,
-                    DropsPlugin,
-                    TileMapPlugin,
-                    MapGenPlugin, */
-                ));
+                .add_systems(OnExit(GameState::Game), despawn_screen::<OnGameScreen>);
+
         }
     }
 
@@ -312,7 +293,7 @@ mod menu {
                         // Display the game name
                         parent.spawn(
                             TextBundle::from_section(
-                                "Bevy Game Menu UI",
+                                "Shape Destroyer",
                                 TextStyle {
                                     font_size: 80.0,
                                     color: TEXT_COLOR,
