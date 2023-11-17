@@ -16,9 +16,6 @@ pub enum GameState {
     Game,
 }
 
-pub fn main_menu() {
-    println!("You are on the main menu.");
-}
 const TEXT_COLOR: Color = Color::rgb(0.9, 0.9, 0.9);
 
 #[derive(Resource, Debug, Component, PartialEq, Eq, Clone, Copy)]
@@ -37,7 +34,7 @@ mod game {
     use crate::player::Player;
 
     use super::{despawn_screen, GameState};
-    use bevy::{prelude::*, render::camera::ScalingMode, sprite::MaterialMesh2dBundle};
+    use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
     // This plugin will contain the game. In this case, it's just be a screen that will
     // display the current settings for 5 seconds before returning to the menu

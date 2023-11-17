@@ -1,12 +1,16 @@
-use bevy::prelude::*;
 use rand::seq::SliceRandom;
 use rand::Rng;
+
+use bevy::{prelude::*, sprite::collide_aabb::collide};
 
 use crate::main_menu::GameState;
 use crate::{
     drops::{Drops, DropsParent},
     Player,
 };
+
+use crate::player::wall_collision_check;
+use crate::tilemap::TileCollider;
 
 pub struct EnemyPlugin;
 
@@ -73,18 +77,19 @@ fn spawn_enemy_parent(mut commands: Commands) {
 fn enemy_lifetime(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemies: Query<(Entity, &mut Transform, &mut Enemy), Without<Player>>,
-    player_transform: Query<&Transform, With<Player>>,
+    mut enemies: Query<(Entity, &mut Transform, &mut Enemy),( Without<Player>,Without<TileCollider>)>,
+    mut player_query: Query<(&mut Transform, &mut Player), (With<Player>,Without<TileCollider>)>,
     parent: Query<Entity, With<EnemyParent>>,
     drops_parent: Query<Entity, With<DropsParent>>,
     asset_server: Res<AssetServer>,
+    wall_query: Query<&Transform, (With<TileCollider>, Without<Player>)>,
 ) {
     let parent = parent.single();
     let drops_parent = drops_parent.single();
-    let player_transform = player_transform.single();
+    let (mut player_transform, mut player) = player_query.single_mut();
     let mut rng = rand::thread_rng();
 
-    for (enemy_entity, mut enemy_transform, enemy) in &mut enemies {
+    for (enemy_entity, mut enemy_transform, mut enemy) in &mut enemies {
         if enemy.health <= 0.0 {
             let transform = &mut enemy_transform.clone();
             transform.translation.z = -1.0;
@@ -117,13 +122,44 @@ fn enemy_lifetime(
             commands.entity(enemy_entity).despawn();
         }
 
-        let movement_amount = enemy.speed
+        let mut movement_amount = enemy.speed
             * Vec3::normalize(player_transform.translation - enemy_transform.translation)
             * time.delta_seconds();
-        enemy_transform.translation += movement_amount
+
+        if player_collision(
+            player_transform.translation,
+            enemy_transform.translation + movement_amount,
+            enemy.radius,
+        ) {
+            movement_amount = movement_amount/enemy.speed *5.;
+            let movement_x = Vec3::new(movement_amount.x, 0., 0.);
+            let movement_y = Vec3::new(0., movement_amount.y, 0.);
+            if wall_collision_check(movement_x + player_transform.translation, &wall_query) {
+
+                player_transform.translation += movement_x;
+            }
+            if wall_collision_check(movement_y + player_transform.translation, &wall_query){
+                player_transform.translation += movement_y;
+            }
+
+            enemy.health -= 1.0;
+            player.health -= enemy.collision_damage;
+        } else {
+            enemy_transform.translation += movement_amount
+        }
     }
 }
 
-fn enemy_collision( time: Res<Time>,){
-
+fn player_collision(target_player: Vec3, target_enemy: Vec3, enemy_radius: f32) -> bool {
+    let collision = collide(
+        target_player,
+        Vec2::splat(enemy_radius),
+        target_enemy,
+        Vec2::splat(5.),
+    );
+    if collision.is_some() {
+        return true;
+    }
+    false
 }
+

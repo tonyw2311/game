@@ -9,7 +9,7 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (character_movement,character_collision))
+        app.add_systems(Update, character_movement)
             .register_type::<Player>();
     }
 }
@@ -55,7 +55,7 @@ fn character_movement(
     }
 }
 
-fn character_collision(
+/* fn character_collision(
     mut players: Query<(&mut Transform, &mut Player),Without<Enemy>>,
     mut enemies: Query<(&mut Transform, &mut Enemy),Without<Player>>,
 ) {
@@ -70,10 +70,10 @@ fn character_collision(
             }
         }
     }
-}
+} */
 
 
-fn wall_collision_check(
+pub fn wall_collision_check(
     target_player_pos: Vec3,
     wall_query: &Query<&Transform, (With<TileCollider>, Without<Player>)>,
 ) -> bool {
@@ -90,14 +90,3 @@ fn wall_collision_check(
     }
     true
 }
-
-/*
-fn projectile_movement(
-    mut projectiles: Query<(&mut Transform, &Projectile)>,
-    input: Res<Input<KeyCode>>,
-    time:Res<Time>,
-){
-    for(mut transform, projectile) in &mut projectiles{
-
-    }
-} */
