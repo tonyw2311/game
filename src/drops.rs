@@ -46,7 +46,7 @@ fn drops_lifetime(
             .translation
             .distance(player_transform.translation);
         if distance < 10. {
-            if drop.drop_type== "coin"{
+            if drop.drop_type== "COIN"{
                 money.0 += 10.;
             }
             else if drop.drop_type=="health" {

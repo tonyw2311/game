@@ -57,7 +57,8 @@ pub fn update_spawning(
             let mult = side as f32;
 
             spawn_transform.translation = Vec3::new(rng.gen_range(-primary.height()/2.0..primary.height()/2.),rng.gen_range(-primary.width()/2.0..primary.width()/2.0),0.);
-            spawn_transform.scale = Vec3::splat(rng.gen_range(1.0..3.0));
+            let radius = rng.gen_range(1.0..3.0);
+            spawn_transform.scale = Vec3::splat(radius);
 
             commands.entity(parent).with_children(|commands| {
                 commands.spawn((
@@ -71,6 +72,7 @@ pub fn update_spawning(
                         health: 25.*mult,
                         speed: 20.0+ 20.*(time.elapsed_seconds()/60.).floor(),
                         collision_damage:1.,
+                        radius:radius*5.       
                     },
                     Name::new("Enemy"),
                 ));

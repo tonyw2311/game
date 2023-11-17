@@ -1,9 +1,12 @@
 use bevy::prelude::*;
+use rand::seq::SliceRandom;
 use rand::Rng;
 
-use crate::{drops::{Drops, DropsParent},  Player};
 use crate::main_menu::GameState;
-
+use crate::{
+    drops::{Drops, DropsParent},
+    Player,
+};
 
 pub struct EnemyPlugin;
 
@@ -21,6 +24,7 @@ pub struct Enemy {
     pub health: f32,
     pub speed: f32,
     pub collision_damage: f32,
+    pub radius: f32,
 }
 
 #[derive(Component)]
@@ -82,48 +86,44 @@ fn enemy_lifetime(
 
     for (enemy_entity, mut enemy_transform, enemy) in &mut enemies {
         if enemy.health <= 0.0 {
-
             let transform = &mut enemy_transform.clone();
             transform.translation.z = -1.0;
             transform.scale = Vec3::splat(1.);
+            if rng.gen_bool(1.) {
+                let drop_arr = ["health", "coin", "damage_up"];
+                let drop = drop_arr.choose(&mut rand::thread_rng()).unwrap();
+                let sprite = Sprite {
+                    custom_size: Some(Vec2::splat(7.)),
+                    ..Default::default()
+                };
 
-            if rng.gen_bool(0.33){
-            if rng.gen_bool(0.5) {
                 commands.entity(drops_parent).with_children(|commands| {
                     commands.spawn((
                         SpriteBundle {
-                            texture:asset_server.load("heart.png"),
+                            sprite,
+                            texture: asset_server.load(format!("{}.png", drop)),
                             transform: *transform,
+
                             ..default()
                         },
                         Drops {
-                            drop_type:"health".to_string(),
+                            drop_type: format!("{}", drop),
                         },
-                        Name::new("Health"),
-                    ));
-                });
-            } else {
-                commands.entity(drops_parent).with_children(|commands| {
-                    commands.spawn((
-                        SpriteBundle {
-                            texture:asset_server.load("coin.png"),
-                            transform: *transform,
-                            ..default()
-                        },
-                        Drops {
-                            drop_type:"coin".to_string(),
-                        },
-                        Name::new("Coin"),
+                        Name::new(format!("{}", drop)),
                     ));
                 });
             }
-        }
             commands.entity(parent).remove_children(&[enemy_entity]);
             commands.entity(enemy_entity).despawn();
         }
+
         let movement_amount = enemy.speed
             * Vec3::normalize(player_transform.translation - enemy_transform.translation)
             * time.delta_seconds();
         enemy_transform.translation += movement_amount
     }
+}
+
+fn enemy_collision( time: Res<Time>,){
+
 }

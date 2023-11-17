@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use rand::Rng;
-pub const MIN_LEAF_SIZE: f32 = 10.;
-pub const MAX_LEAF_SIZE: f32 = 35.;
+pub const MIN_LEAF_SIZE: f32 = 15.;
+pub const MAX_LEAF_SIZE: f32 = 40.;
 pub struct MapGenPlugin;
 impl Plugin for MapGenPlugin {
     fn build(&self, app: &mut App) {
@@ -183,9 +183,6 @@ fn system(mut gizmos: Gizmos) {
 
 }
 
-fn create_rooms(){
-    
-}
 
 /* fn split_leaf(leaf: Leaf) -> bool {
     let mut rng = rand::thread_rng();
