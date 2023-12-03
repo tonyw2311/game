@@ -70,7 +70,7 @@ pub fn update_spawning(
                     },
                     Enemy {
                         health: 25.*mult,
-                        speed: 20.0+ 20.*(time.elapsed_seconds()/60.).floor(),
+                        speed: 20.0,//+ 20.*(time.elapsed_seconds()/60.).floor(),
                         collision_damage:1.,
                         radius:radius*5.       
                     },

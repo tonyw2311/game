@@ -2,7 +2,6 @@ use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_inspector_egui::prelude::ReflectInspectorOptions;
 use bevy_inspector_egui::InspectorOptions;
 
-use crate::enemy::Enemy;
 use crate::tilemap::{TileCollider, TILE_SIZE};
 
 pub struct PlayerPlugin;
@@ -55,22 +54,7 @@ fn character_movement(
     }
 }
 
-/* fn character_collision(
-    mut players: Query<(&mut Transform, &mut Player),Without<Enemy>>,
-    mut enemies: Query<(&mut Transform, &mut Enemy),Without<Player>>,
-) {
-    for (player_transform, mut player) in players.iter_mut() {
-        for (enemy_transform, mut enemy) in enemies.iter_mut() {
-            let distance = enemy_transform
-                .translation
-                .distance(player_transform.translation);
-            if distance < 10. {
-                enemy.health -= 1.0;
-                player.health -= enemy.collision_damage;
-            }
-        }
-    }
-} */
+
 
 
 pub fn wall_collision_check(

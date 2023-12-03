@@ -1,5 +1,5 @@
 use crate::player::Player;
-use bevy::{prelude::*, render::camera::ScalingMode, sprite::MaterialMesh2dBundle};
+use bevy::{prelude::*, render::camera::ScalingMode};
 use drops::DropsPlugin;
 use enemy::EnemyPlugin;
 use enemy_spawner::EnemySpawnerPlugin;
@@ -78,28 +78,5 @@ fn setup(
 
     commands.spawn(camera);
 
-   /*  camera.projection.scaling_mode = ScalingMode::AutoMin {
-        min_width: 256.0,
-        min_height: 144.0,
-    };
 
-
-    commands.spawn((
-        MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(4.).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::DARK_GRAY)),
-            transform: Transform::from_xyz(0., 0., 0.),
-            ..default()
-        },
-        Player {
-            speed: 50.0,
-            health: 200.0,
-        },
-        Name::new("Player"),
-    ));
-
-    commands.spawn(enemy_spawner::EnemySpawner {
-        cooldown: 1.,
-        timer: 1.,
-    }); */
 }

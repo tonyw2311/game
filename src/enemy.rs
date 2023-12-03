@@ -77,19 +77,27 @@ fn spawn_enemy_parent(mut commands: Commands) {
 fn enemy_lifetime(
     mut commands: Commands,
     time: Res<Time>,
-    mut enemies: Query<(Entity, &mut Transform, &mut Enemy),( Without<Player>,Without<TileCollider>)>,
-    mut player_query: Query<(&mut Transform, &mut Player), (With<Player>,Without<TileCollider>)>,
+    mut enemies: Query<
+        (Entity, &mut Transform, &mut Enemy),
+        (Without<Player>, Without<TileCollider>),
+    >,
+    mut player_query: Query<(&mut Transform, &mut Player), (With<Player>, Without<TileCollider>)>,
     parent: Query<Entity, With<EnemyParent>>,
     drops_parent: Query<Entity, With<DropsParent>>,
     asset_server: Res<AssetServer>,
     wall_query: Query<&Transform, (With<TileCollider>, Without<Player>)>,
 ) {
+    
     let parent = parent.single();
     let drops_parent = drops_parent.single();
     let (mut player_transform, mut player) = player_query.single_mut();
     let mut rng = rand::thread_rng();
-
-    for (enemy_entity, mut enemy_transform, mut enemy) in &mut enemies {
+    
+    let mut iter = enemies.iter_combinations_mut::<2>();
+    while let Some(
+        [(enemy_entity, mut enemy_transform, enemy), (_, enemy_transform2, enemy2)],
+    ) = iter.fetch_next()
+    {
         if enemy.health <= 0.0 {
             let transform = &mut enemy_transform.clone();
             transform.translation.z = -1.0;
@@ -121,7 +129,9 @@ fn enemy_lifetime(
             commands.entity(parent).remove_children(&[enemy_entity]);
             commands.entity(enemy_entity).despawn();
         }
-
+/* 
+        println!("{}",enemy.radius);
+        println!("{}",enemy2.radius); */
         let mut movement_amount = enemy.speed
             * Vec3::normalize(player_transform.translation - enemy_transform.translation)
             * time.delta_seconds();
@@ -131,22 +141,30 @@ fn enemy_lifetime(
             enemy_transform.translation + movement_amount,
             enemy.radius,
         ) {
-            movement_amount = movement_amount/enemy.speed *5.;
+            movement_amount = movement_amount / enemy.speed * 5.;
             let movement_x = Vec3::new(movement_amount.x, 0., 0.);
             let movement_y = Vec3::new(0., movement_amount.y, 0.);
-            if wall_collision_check(movement_x + player_transform.translation, &wall_query) {
 
+            if wall_collision_check(movement_x + player_transform.translation, &wall_query) {
                 player_transform.translation += movement_x;
             }
-            if wall_collision_check(movement_y + player_transform.translation, &wall_query){
+            if wall_collision_check(movement_y + player_transform.translation, &wall_query) {
                 player_transform.translation += movement_y;
             }
 
-            enemy.health -= 1.0;
+            //enemy.health -= 1.0;
             player.health -= enemy.collision_damage;
-        } else {
-            enemy_transform.translation += movement_amount
+
         }
+        else if !enemy_collision(
+            enemy_transform.translation+movement_amount,
+            enemy.radius,
+            enemy_transform2.translation,
+            enemy2.radius,
+        ) {
+            enemy_transform.translation += movement_amount
+        } 
+
     }
 }
 
@@ -157,9 +175,21 @@ fn player_collision(target_player: Vec3, target_enemy: Vec3, enemy_radius: f32) 
         target_enemy,
         Vec2::splat(5.),
     );
-    if collision.is_some() {
-        return true;
-    }
-    false
+    return collision.is_some();
 }
 
+fn enemy_collision(
+    target_enemy: Vec3,
+    target_radius: f32,
+    enemy2_pos: Vec3,
+    enemy2_radius: f32,
+) -> bool {
+    let collision = collide(
+        target_enemy,
+        Vec2::splat(target_radius*10.),
+        enemy2_pos,
+        Vec2::splat(enemy2_radius*10.),
+    );
+
+    return collision.is_some();
+}
