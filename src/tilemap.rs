@@ -1,8 +1,4 @@
-use std::{
-    f32::consts::PI,
-    fs::File,
-    io::{BufRead, BufReader},
-};
+
 
 use bevy::{prelude::*, window::PrimaryWindow};
 use crate::main_menu::GameState;
@@ -26,7 +22,8 @@ fn create_simple_map(
     primary_query: Query<&Window, With<PrimaryWindow>>,
 ) {
     let primary = primary_query.single();
-    info!("{}", primary.resolution.physical_width());
+    println!("{}", primary.resolution.width() / 2.);
+    println!("{}", primary.resolution.height());
 
     let mut x = -primary.resolution.width() / 2.;
     let mut y = -primary.resolution.height() / 2.;

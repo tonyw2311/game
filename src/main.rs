@@ -1,5 +1,6 @@
 use crate::player::Player;
-use bevy::{prelude::*, render::camera::ScalingMode};
+use bevy::{prelude::*, render::camera::ScalingMode, input::common_conditions::input_toggle_active};
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use drops::DropsPlugin;
 use enemy::EnemyPlugin;
 use enemy_spawner::EnemySpawnerPlugin;
@@ -42,9 +43,9 @@ fn main() {
                 })
                 .build(),
         )
-        /*         .add_plugins(
+                .add_plugins(
             WorldInspectorPlugin::default().run_if(input_toggle_active(true, KeyCode::Escape)),
-        ) */
+        )
         .insert_resource(ClearColor(Color::rgb(0.9, 0.3, 0.6)))
         .insert_resource(Money(100.0))
         .register_type::<Money>()
@@ -56,9 +57,9 @@ fn main() {
             PlayerPlugin,
             EnemySpawnerPlugin,
             DropsPlugin,
-            TileMapPlugin,
+            //TileMapPlugin,
             MapGenPlugin,
-            MainMenuPlugin
+            MainMenuPlugin,
         ))
         .add_systems(Startup, setup)
         .run();

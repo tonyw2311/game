@@ -1,7 +1,7 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
-pub const MIN_LEAF_SIZE: f32 = 15.;
-pub const MAX_LEAF_SIZE: f32 = 40.;
+pub const MIN_LEAF_SIZE: f32 = 10.;
+pub const MAX_LEAF_SIZE: f32 = 30.;
 pub struct MapGenPlugin;
 impl Plugin for MapGenPlugin {
     fn build(&self, app: &mut App) {
@@ -45,6 +45,9 @@ impl Leaf {
         let split = rng.gen_range(MIN_LEAF_SIZE..max);
         let left_child;
         let right_child;
+        /*
+        divide by height
+        */
         if split_b {
             left_child = Leaf {
                 x: self.x,
@@ -60,6 +63,10 @@ impl Leaf {
                 height: self.height - split,
                 child_split: false,
             };
+
+        /*
+        divide by width
+        */
         } else {
             left_child = Leaf {
                 x: self.x,
@@ -81,13 +88,23 @@ impl Leaf {
     }
 }
 
-fn start_level(mut gizmos: Gizmos, mut commands: Commands, assets: Res<AssetServer>) {
+fn start_level(
+    mut gizmos: Gizmos,
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+) {
     let mut _leaf: Vec<Leaf> = vec![];
     let root = Leaf {
-        x: 0.,
-        y: 0.,
-        width: 100.,
-        height: 100.,
+/*         x: -640.,
+        y: -360.,
+        width: 1280.,
+        height: 720., */
+        x: -64.,
+        y: -36.,
+        width: 128.,
+        height: 72.,
         child_split: false,
     };
     _leaf.push(root);
@@ -114,127 +131,88 @@ fn start_level(mut gizmos: Gizmos, mut commands: Commands, assets: Res<AssetServ
         _leaf.append(&mut temp_leaf)
     }
 
+    let mut rng = rand::thread_rng();
+
     for l in _leaf.iter() {
         let mut i = l.x;
         let mut j = l.y;
 
-        while i < (l.x + l.width) {
-            i += 3.;
-            let texture = assets.load("square.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(i, l.y, 10.0),
-                    scale: Vec3::splat(0.5),
-                    ..Default::default()
-                },
+        if !l.child_split {
+            let spawn_transform = Transform {
+                translation: Vec3::new(l.x, l.y, -10.),
                 ..Default::default()
-            },));
-            let texture = assets.load("square.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(i, l.y+l.height, 10.0),
-                    scale: Vec3::splat(0.5),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-
+            };
+            commands.spawn(MaterialMesh2dBundle {
+                mesh: meshes
+                    .add(shape::Quad::new(Vec2::new(l.width, l.height)).into())
+                    .into(),
+                material: materials.add(ColorMaterial::from(Color::rgb(
+                    rng.gen_range(0.0..1.0),
+                    rng.gen_range(0.0..1.0),
+                    rng.gen_range(0.0..1.0),
+                ))),
+                transform: spawn_transform,
+                ..default()
+            });
         }
-        while j < (l.y + l.height) {
-            j += 3.;
-            let texture = assets.load("square.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(l.x, j, 10.0),
-                    scale: Vec3::splat(0.5),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-            let texture = assets.load("square.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(l.x+l.width, j, 10.0),
-                    scale: Vec3::splat(0.5),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
+        /*
+                while i < (l.x + l.width) {
+                    i += 10.;
+                    let texture = assets.load("wall.png");
+                    commands.spawn((SpriteBundle {
+                        texture,
+                        transform: Transform {
+                            translation: Vec3::new(i, l.y, 10.0),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },));
 
-        }
+                    let texture = assets.load("wall.png");
+                    commands.spawn((SpriteBundle {
+                        texture,
+                        transform: Transform {
+                            translation: Vec3::new(i, l.y+l.height, 10.0),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },));
 
-        gizmos.rect_2d(
-            Vec2::new(l.x, l.y),
-            0.,
-            Vec2::new(l.width, l.height),
-            Color::BLACK,
-        );
-        print!("{} ,", l.x);
-        println!("{}", l.y);
+                }
+                while j < (l.y + l.height) {
+                    j += 10.;
+                    let texture = assets.load("wall.png");
+                    commands.spawn((SpriteBundle {
+                        texture,
+                        transform: Transform {
+                            translation: Vec3::new(l.x, j, 10.0),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },));
+                    let texture = assets.load("wall.png");
+                    commands.spawn((SpriteBundle {
+                        texture,
+                        transform: Transform {
+                            translation: Vec3::new(l.x+l.width, j, 10.0),
+                            ..Default::default()
+                        },
+                        ..Default::default()
+                    },));
+
+                }
+
+                gizmos.rect_2d(
+                    Vec2::new(l.x, l.y),
+                    0.,
+                    Vec2::new(l.width, l.height),
+                    Color::BLACK,
+                );
+        /*         print!("{} ,", l.x);
+                println!("{}", l.y); */ */
     }
 }
 
 fn system(mut gizmos: Gizmos) {
     gizmos.rect_2d(Vec2::ZERO, 2., Vec2::splat(10.), Color::RED);
-
 }
-
-
-/* fn split_leaf(leaf: Leaf) -> bool {
-    let mut rng = rand::thread_rng();
-    if rng.gen_bool(0.5) {}
-
-    let mut max: f32 = 0.;
-    let mut split_b: bool = false;
-    if (leaf.width > leaf.height) && (leaf.width / leaf.height >= 1.25) {
-        max = leaf.width - MIN_LEAF_SIZE
-    } else if (leaf.height > leaf.width) && (leaf.height / leaf.width >= 1.25) {
-        max = leaf.height - MIN_LEAF_SIZE;
-        split_b = true
-    }
-    if max <= MIN_LEAF_SIZE {
-        return false;
-    }
-    let split = rng.gen_range(MIN_LEAF_SIZE..max);
-    if split_b {
-        let leftChild = Leaf {
-            x: leaf.x,
-            y: leaf.y,
-            width: leaf.width,
-            height: split,
-            child_split: false,
-            right_child_split: false,
-        };
-        let rightChild = Leaf {
-            x: leaf.x,
-            y: leaf.y + split,
-            width: leaf.width,
-            height: leaf.height - split,
-            child_split: false,
-            right_child_split: false,
-        };
-    } else {
-        let leftChild = Leaf {
-            x: leaf.x,
-            y: leaf.y,
-            width: split,
-            height: leaf.height,
-            child_split: false,
-            right_child_split: false,
-        };
-        let rightChild = Leaf {
-            x: leaf.x + split,
-            y: leaf.y,
-            width: leaf.width - split,
-            height: leaf.height,
-            child_split: false,
-            right_child_split: false,
-        };
-    }
-    return true;
-}
- */

@@ -60,11 +60,14 @@ pub fn update_spawning(
             let radius = rng.gen_range(1.0..3.0);
             spawn_transform.scale = Vec3::splat(radius);
 
+
+
+            
             commands.entity(parent).with_children(|commands| {
                 commands.spawn((
                     MaterialMesh2dBundle {
                         mesh: meshes.add(shape::RegularPolygon::new(3.,side).into()).into(),
-                        material: materials.add(ColorMaterial::from(Color::PURPLE)),
+                        material: materials.add(ColorMaterial::from(Color::rgb(rng.gen_range(0.0..1.0),rng.gen_range(0.0..1.0),rng.gen_range(0.0..1.0)))),
                         transform: spawn_transform,
                         ..default()
                     },

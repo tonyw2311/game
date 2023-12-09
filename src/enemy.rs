@@ -42,37 +42,6 @@ fn spawn_enemy_parent(mut commands: Commands) {
     ));
 }
 
-/* fn spawn_enemy(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    input: Res<Input<KeyCode>>,
-    player: Query<&Transform, With<Player>>,
-    parent: Query<Entity, With<EnemyParent>>,
-) {
-    if !input.just_pressed(KeyCode::L) {
-        return;
-    }
-
-    let player_transform = player.single();
-    let parent = parent.single();
-
-    let texture = asset_server.load("triangle.png");
-
-    commands.entity(parent).with_children(|commands| {
-        commands.spawn((
-            SpriteBundle {
-                texture,
-                transform: *player_transform,
-                ..default()
-            },
-            Enemy {
-                health: 100.0,
-                speed: 10.0,
-            },
-            Name::new("Enemy"),
-        ));
-    });
-} */
 
 fn enemy_lifetime(
     mut commands: Commands,
@@ -87,17 +56,12 @@ fn enemy_lifetime(
     asset_server: Res<AssetServer>,
     wall_query: Query<&Transform, (With<TileCollider>, Without<Player>)>,
 ) {
-    
     let parent = parent.single();
     let drops_parent = drops_parent.single();
     let (mut player_transform, mut player) = player_query.single_mut();
     let mut rng = rand::thread_rng();
-    
-    let mut iter = enemies.iter_combinations_mut::<2>();
-    while let Some(
-        [(enemy_entity, mut enemy_transform, enemy), (_, enemy_transform2, enemy2)],
-    ) = iter.fetch_next()
-    {
+
+    for (enemy_entity, enemy_transform, enemy) in enemies.iter() {
         if enemy.health <= 0.0 {
             let transform = &mut enemy_transform.clone();
             transform.translation.z = -1.0;
@@ -129,10 +93,17 @@ fn enemy_lifetime(
             commands.entity(parent).remove_children(&[enemy_entity]);
             commands.entity(enemy_entity).despawn();
         }
-/* 
+    }
+
+    let mut iter = enemies.iter_combinations_mut::<2>();
+
+    while let Some([(_, mut enemy_transform, enemy), (_, enemy_transform2, enemy2)]) =
+        iter.fetch_next()
+    {
+        /*
         println!("{}",enemy.radius);
         println!("{}",enemy2.radius); */
-        let mut movement_amount = enemy.speed
+        let mut movement_amount = enemy.speed/10.
             * Vec3::normalize(player_transform.translation - enemy_transform.translation)
             * time.delta_seconds();
 
@@ -154,17 +125,22 @@ fn enemy_lifetime(
 
             //enemy.health -= 1.0;
             player.health -= enemy.collision_damage;
-
-        }
-        else if !enemy_collision(
-            enemy_transform.translation+movement_amount,
+        } else if !enemy_collision(
+            enemy_transform.translation + movement_amount,
             enemy.radius,
             enemy_transform2.translation,
             enemy2.radius,
-        ) {
+        ) && ! enemy_collision(
+            enemy_transform.translation,
+            enemy.radius,
+            enemy_transform2.translation,
+            enemy2.radius,
+        ){
             enemy_transform.translation += movement_amount
-        } 
-
+        }
+        else{
+            //println!("collided")
+        }
     }
 }
 
@@ -186,10 +162,9 @@ fn enemy_collision(
 ) -> bool {
     let collision = collide(
         target_enemy,
-        Vec2::splat(target_radius*10.),
+        Vec2::splat(target_radius),
         enemy2_pos,
-        Vec2::splat(enemy2_radius*10.),
+        Vec2::splat(enemy2_radius),
     );
-
     return collision.is_some();
 }
