@@ -1,12 +1,11 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
-pub const MIN_LEAF_SIZE: f32 = 10.;
-pub const MAX_LEAF_SIZE: f32 = 30.;
+pub const MIN_LEAF_SIZE: f32 = 100.;
+pub const MAX_LEAF_SIZE: f32 = 300.;
 pub struct MapGenPlugin;
 impl Plugin for MapGenPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, start_level)
-            .add_systems(Update, system)
             .register_type::<Leaf>();
     }
 }
@@ -21,6 +20,12 @@ pub struct Leaf {
     child_split: bool,
 }
 
+#[derive(Component)]
+pub struct RoomTag{
+    pub width: f32,
+    pub height: f32,
+}
+
 impl Leaf {
     fn split(&mut self) -> Option<(Leaf, Leaf)> {
         let mut rng = rand::thread_rng();
@@ -29,15 +34,21 @@ impl Leaf {
             return None;
         }
 
-        let mut max: f32 = self.height - MIN_LEAF_SIZE;
-        let mut split_b: bool = false;
+        let max: f32;
+        let mut split_b: bool = rng.gen_bool(0.5);
         if (self.width > self.height) && (self.width / self.height >= 1.25) {
             max = self.width - MIN_LEAF_SIZE;
+            split_b = false;
         } else if (self.height > self.width) && (self.height / self.width >= 1.25) {
             max = self.height - MIN_LEAF_SIZE;
             split_b = true;
+        } else {
+            max = if split_b {
+                self.height - MIN_LEAF_SIZE
+            } else {
+                self.width - MIN_LEAF_SIZE
+            }
         }
-
         if max <= MIN_LEAF_SIZE {
             return None;
         }
@@ -89,22 +100,20 @@ impl Leaf {
 }
 
 fn start_level(
-    mut gizmos: Gizmos,
     mut commands: Commands,
-    assets: Res<AssetServer>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mut _leaf: Vec<Leaf> = vec![];
     let root = Leaf {
-/*         x: -640.,
+        /*         x: -640.,
         y: -360.,
         width: 1280.,
         height: 720., */
-        x: -64.,
-        y: -36.,
-        width: 128.,
-        height: 72.,
+        x: -640.,
+        y: -360.,
+        width: 1280.,
+        height: 720.,
         child_split: false,
     };
     _leaf.push(root);
@@ -134,15 +143,12 @@ fn start_level(
     let mut rng = rand::thread_rng();
 
     for l in _leaf.iter() {
-        let mut i = l.x;
-        let mut j = l.y;
-
         if !l.child_split {
             let spawn_transform = Transform {
-                translation: Vec3::new(l.x, l.y, -10.),
+                translation: Vec3::new(l.x + l.width / 2., l.y + l.height / 2., -10.),
                 ..Default::default()
             };
-            commands.spawn(MaterialMesh2dBundle {
+            commands.spawn((MaterialMesh2dBundle {
                 mesh: meshes
                     .add(shape::Quad::new(Vec2::new(l.width, l.height)).into())
                     .into(),
@@ -153,66 +159,66 @@ fn start_level(
                 ))),
                 transform: spawn_transform,
                 ..default()
-            });
+            }, RoomTag{
+                width:l.width,
+                height:l.height
+            }));
         }
         /*
-                while i < (l.x + l.width) {
-                    i += 10.;
-                    let texture = assets.load("wall.png");
-                    commands.spawn((SpriteBundle {
-                        texture,
-                        transform: Transform {
-                            translation: Vec3::new(i, l.y, 10.0),
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },));
+        while i < (l.x + l.width) {
+            i += 10.;
+            let texture = assets.load("wall.png");
+            commands.spawn((SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(i, l.y, 10.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },));
 
-                    let texture = assets.load("wall.png");
-                    commands.spawn((SpriteBundle {
-                        texture,
-                        transform: Transform {
-                            translation: Vec3::new(i, l.y+l.height, 10.0),
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },));
+            let texture = assets.load("wall.png");
+            commands.spawn((SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(i, l.y+l.height, 10.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },));
 
-                }
-                while j < (l.y + l.height) {
-                    j += 10.;
-                    let texture = assets.load("wall.png");
-                    commands.spawn((SpriteBundle {
-                        texture,
-                        transform: Transform {
-                            translation: Vec3::new(l.x, j, 10.0),
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },));
-                    let texture = assets.load("wall.png");
-                    commands.spawn((SpriteBundle {
-                        texture,
-                        transform: Transform {
-                            translation: Vec3::new(l.x+l.width, j, 10.0),
-                            ..Default::default()
-                        },
-                        ..Default::default()
-                    },));
+        }
+        while j < (l.y + l.height) {
+            j += 10.;
+            let texture = assets.load("wall.png");
+            commands.spawn((SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(l.x, j, 10.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },));
+            let texture = assets.load("wall.png");
+            commands.spawn((SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(l.x+l.width, j, 10.0),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },));
 
-                }
+        }
 
-                gizmos.rect_2d(
-                    Vec2::new(l.x, l.y),
-                    0.,
-                    Vec2::new(l.width, l.height),
-                    Color::BLACK,
-                );
+        gizmos.rect_2d(
+            Vec2::new(l.x, l.y),
+            0.,
+            Vec2::new(l.width, l.height),
+            Color::BLACK,
+        );  */
         /*         print!("{} ,", l.x);
-                println!("{}", l.y); */ */
+        println!("{}", l.y); */
     }
 }
 
-fn system(mut gizmos: Gizmos) {
-    gizmos.rect_2d(Vec2::ZERO, 2., Vec2::splat(10.), Color::RED);
-}

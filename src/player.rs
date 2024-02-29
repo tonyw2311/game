@@ -1,16 +1,20 @@
+use crate::main_menu::GameState;
 use bevy::{prelude::*, sprite::collide_aabb::collide};
 use bevy_inspector_egui::prelude::ReflectInspectorOptions;
 use bevy_inspector_egui::InspectorOptions;
-use crate::main_menu::GameState;
 
+use crate::map_gen::RoomTag;
 use crate::tilemap::{TileCollider, TILE_SIZE};
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, character_movement.run_if(in_state(GameState::Game)))
-            .register_type::<Player>();
+        app.add_systems(
+            Update,
+            (character_movement, room_enter).run_if(in_state(GameState::Game)),
+        )
+        .register_type::<Player>();
     }
 }
 
@@ -27,7 +31,7 @@ fn character_movement(
     input: Res<Input<KeyCode>>,
     time: Res<Time>,
     wall_query: Query<&Transform, (With<TileCollider>, Without<Player>)>,
-    mut camera: Query<&mut Transform, (With<Camera>,Without<Player>, Without<TileCollider>)>,
+    mut camera: Query<&mut Transform, (With<Camera>, Without<Player>, Without<TileCollider>)>,
 ) {
     let (mut player_transform, player) = players.single_mut();
     let mut camera_transform = camera.single_mut();
@@ -50,14 +54,12 @@ fn character_movement(
     let target = player_transform.translation + Vec3::new(x_del, 0.0, 0.0);
     if wall_collision_check(target, &wall_query) {
         player_transform.translation = target;
-       camera_transform.translation = target;
-
+        camera_transform.translation = target;
     }
     let target = player_transform.translation + Vec3::new(0.0, y_del, 0.0);
     if wall_collision_check(target, &wall_query) {
         player_transform.translation = target;
         camera_transform.translation = target;
-
     }
 }
 
@@ -77,4 +79,47 @@ pub fn wall_collision_check(
         }
     }
     true
+}
+
+pub fn room_enter(
+    mut commands: Commands,
+    players: Query<&Transform, With<Player>>,
+    rooms: Query<(Entity, &Transform, &RoomTag), Without<Player>>,
+    mut materials: ResMut<Assets<ColorMaterial>>
+) {
+    let player = players.single();
+    for (room_entity, room_transform, room) in rooms.iter() {
+        
+        if is_inside_room(
+            player.translation,
+            room_transform.translation,
+            room.width,
+            room.height,
+        ) {
+            commands.entity(room_entity).insert(materials.add(ColorMaterial::from(Color::LIME_GREEN)));
+            println!("Entered the room! Transform: {:?}", room_transform);
+        }
+        else{
+            commands.entity(room_entity).insert(materials.add(ColorMaterial::from(Color::BLACK)));
+        }
+    }
+}
+
+fn is_inside_room(
+    player_location: Vec3,
+    room_location: Vec3,
+    room_width: f32,
+    room_height: f32,
+) -> bool {
+    // Implement logic to check if the player is inside the room
+    // For simplicity, let's assume a rectangular room and check if player_location is within its bounds
+    let room_size = Vec2::new(room_width, room_height); // Adjust the size of the room as needed
+
+    let room_min = room_location.xy() - room_size / 2.0;
+    let room_max = room_location.xy() + room_size / 2.0;
+
+    player_location.x > room_min.x
+        && player_location.x < room_max.x
+        && player_location.y > room_min.y
+        && player_location.y < room_max.y
 }
