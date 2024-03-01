@@ -1,7 +1,7 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
-pub const MIN_LEAF_SIZE: f32 = 100.;
-pub const MAX_LEAF_SIZE: f32 = 300.;
+pub const MIN_LEAF_SIZE: f32 = 200.;
+pub const MAX_LEAF_SIZE: f32 = 600.;
 pub struct MapGenPlugin;
 impl Plugin for MapGenPlugin {
     fn build(&self, app: &mut App) {
@@ -105,15 +105,17 @@ fn start_level(
     mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     let mut _leaf: Vec<Leaf> = vec![];
+    let weight = 2.;
     let root = Leaf {
         /*         x: -640.,
         y: -360.,
         width: 1280.,
         height: 720., */
-        x: -640.,
-        y: -360.,
-        width: 1280.,
-        height: 720.,
+
+        x: -640.*weight,
+        y: -360.*weight,
+        width: 1280.*weight,
+        height: 720.*weight,
         child_split: false,
     };
     _leaf.push(root);

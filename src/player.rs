@@ -84,23 +84,44 @@ pub fn wall_collision_check(
 pub fn room_enter(
     mut commands: Commands,
     players: Query<&Transform, With<Player>>,
-    rooms: Query<(Entity, &Transform, &RoomTag), Without<Player>>,
-    mut materials: ResMut<Assets<ColorMaterial>>
+    mut rooms: Query<(Entity, &mut Transform, &RoomTag), Without<Player>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    assets: Res<AssetServer>,
+    mut prev_room_pos: Local<Option<Vec3>>,
 ) {
     let player = players.single();
-    for (room_entity, room_transform, room) in rooms.iter() {
-        
+    for (room_entity, mut room_transform, room) in rooms.iter_mut() {
         if is_inside_room(
             player.translation,
             room_transform.translation,
             room.width,
             room.height,
         ) {
-            commands.entity(room_entity).insert(materials.add(ColorMaterial::from(Color::LIME_GREEN)));
-            println!("Entered the room! Transform: {:?}", room_transform);
+            if let Some(prev_pos) = prev_room_pos.as_ref() {
+                if *prev_pos != room_transform.translation {
+                    create_walls(&mut commands, &assets, room.width, room.height,room_transform.translation);
+                    room_transform.translation.z = -30.;
+                    println!(
+                        "Entered the room! Transform: {:?}",
+                        room_transform.translation
+                    );
+                } 
+            } else {
+                // This is the first room the player enters
+                create_walls(&mut commands, &assets, room.width, room.height, room_transform.translation);
+                room_transform.translation.z = -30.;
+                println!(
+                    "Entered the room for the first time! Transform: {:?}",
+                    room_transform.translation
+                );
+            }
+            *prev_room_pos = Some(room_transform.translation);
         }
-        else{
-            commands.entity(room_entity).insert(materials.add(ColorMaterial::from(Color::BLACK)));
+        else {
+            room_transform.translation.z = -10.;
+            commands
+                .entity(room_entity)
+                .insert(materials.add(ColorMaterial::from(Color::BLACK)));
         }
     }
 }
@@ -122,4 +143,75 @@ fn is_inside_room(
         && player_location.x < room_max.x
         && player_location.y > room_min.y
         && player_location.y < room_max.y
+}
+
+fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, height: f32, room_location: Vec3) {
+    let room_size = Vec2::new(width, height);
+    let room_min = room_location.xy() - room_size / 2.0;
+    let room_max = room_location.xy() + room_size / 2.0;
+    let mut x_wall = room_min.x;
+    let mut y_wall = room_min.y;
+
+    while x_wall < room_max.x {
+        let texture = assets.load("wall.png");
+        commands.spawn((
+            SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(x_wall, room_max.y, 10.0),
+                    scale: Vec3::splat(1.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            //TileCollider,
+        ));
+
+        let texture = assets.load("wall.png");
+        commands.spawn((
+            SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(x_wall, room_min.y, 10.0),
+                    scale: Vec3::splat(1.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            //TileCollider,
+        ));
+
+        x_wall += TILE_SIZE
+    }
+    while y_wall < room_max.y {
+        let texture = assets.load("wall.png");
+        commands.spawn((
+            SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(room_max.x , y_wall, 10.0),
+                    scale: Vec3::splat(1.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            //TileCollider,
+        ));
+
+        let texture = assets.load("wall.png");
+        commands.spawn((
+            SpriteBundle {
+                texture,
+                transform: Transform {
+                    translation: Vec3::new(room_min.x, y_wall, 10.0),
+                    scale: Vec3::splat(1.),
+                    ..Default::default()
+                },
+                ..Default::default()
+            },
+            //TileCollider,
+        ));
+
+        y_wall += TILE_SIZE
+    }
 }

@@ -57,7 +57,7 @@ fn main() {
             PlayerPlugin,
             EnemySpawnerPlugin,
             DropsPlugin,
-            //TileMapPlugin,
+            TileMapPlugin,
             MapGenPlugin,
             MainMenuPlugin,
         ))
