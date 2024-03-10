@@ -107,11 +107,6 @@ fn start_level(
     let mut _leaf: Vec<Leaf> = vec![];
     let weight = 2.;
     let root = Leaf {
-        /*         x: -640.,
-        y: -360.,
-        width: 1280.,
-        height: 720., */
-
         x: -640.*weight,
         y: -360.*weight,
         width: 1280.*weight,
@@ -166,61 +161,7 @@ fn start_level(
                 height:l.height
             }));
         }
-        /*
-        while i < (l.x + l.width) {
-            i += 10.;
-            let texture = assets.load("wall.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(i, l.y, 10.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-
-            let texture = assets.load("wall.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(i, l.y+l.height, 10.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-
-        }
-        while j < (l.y + l.height) {
-            j += 10.;
-            let texture = assets.load("wall.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(l.x, j, 10.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-            let texture = assets.load("wall.png");
-            commands.spawn((SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(l.x+l.width, j, 10.0),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },));
-
-        }
-
-        gizmos.rect_2d(
-            Vec2::new(l.x, l.y),
-            0.,
-            Vec2::new(l.width, l.height),
-            Color::BLACK,
-        );  */
-        /*         print!("{} ,", l.x);
-        println!("{}", l.y); */
+       
     }
 }
 

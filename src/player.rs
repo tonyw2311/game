@@ -100,6 +100,7 @@ pub fn room_enter(
             if let Some(prev_pos) = prev_room_pos.as_ref() {
                 if *prev_pos != room_transform.translation {
                     create_walls(&mut commands, &assets, room.width, room.height,room_transform.translation);
+                    create_doorway(&mut commands, &assets, room.width, room.height, room_transform.translation);
                     room_transform.translation.z = -30.;
                     println!(
                         "Entered the room! Transform: {:?}",
@@ -109,6 +110,7 @@ pub fn room_enter(
             } else {
                 // This is the first room the player enters
                 create_walls(&mut commands, &assets, room.width, room.height, room_transform.translation);
+                create_doorway(&mut commands, &assets, room.width, room.height, room_transform.translation);
                 room_transform.translation.z = -30.;
                 println!(
                     "Entered the room for the first time! Transform: {:?}",
@@ -118,7 +120,7 @@ pub fn room_enter(
             *prev_room_pos = Some(room_transform.translation);
         }
         else {
-            room_transform.translation.z = -10.;
+            room_transform.translation.z = 5.;
             commands
                 .entity(room_entity)
                 .insert(materials.add(ColorMaterial::from(Color::BLACK)));
@@ -164,7 +166,7 @@ fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, 
                 },
                 ..Default::default()
             },
-            //TileCollider,
+            TileCollider,
         ));
 
         let texture = assets.load("wall.png");
@@ -178,7 +180,7 @@ fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, 
                 },
                 ..Default::default()
             },
-            //TileCollider,
+            TileCollider,
         ));
 
         x_wall += TILE_SIZE
@@ -195,7 +197,7 @@ fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, 
                 },
                 ..Default::default()
             },
-            //TileCollider,
+            TileCollider,
         ));
 
         let texture = assets.load("wall.png");
@@ -209,9 +211,30 @@ fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, 
                 },
                 ..Default::default()
             },
-            //TileCollider,
+            TileCollider,
         ));
 
         y_wall += TILE_SIZE
     }
+}
+
+fn create_doorway(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, height: f32, room_location: Vec3) {
+    let texture = assets.load("sand.png");
+    let room_size = Vec2::new(width, height);
+    let room_min = room_location.xy() - room_size / 2.0;
+    let room_max = room_location.xy() + room_size / 2.0;
+    
+    // Determine the position of the doorway
+    let doorway_position = Vec3::new(room_max.x, room_location.y, 10.0); // Adjust the position as needed
+    
+    // Spawn the doorway sprite
+    commands.spawn(SpriteBundle {
+        texture,
+        transform: Transform {
+            translation: doorway_position,
+            scale: Vec3::splat(1.),
+            ..Default::default()
+        },
+        ..Default::default()
+    });
 }
