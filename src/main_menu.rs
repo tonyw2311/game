@@ -317,7 +317,7 @@ mod menu {
                                 MenuButtonAction::Play,
                             ))
                             .with_children(|parent| {
-                                let icon = asset_server.load("textures/Game Icons/right.png");
+                                let icon = asset_server.load("bullet.png");
                                 parent.spawn(ImageBundle {
                                     style: button_icon_style.clone(),
                                     image: UiImage::new(icon),
@@ -328,45 +328,8 @@ mod menu {
                                     button_text_style.clone(),
                                 ));
                             });
-                        parent
-                            .spawn((
-                                ButtonBundle {
-                                    style: button_style.clone(),
-                                    background_color: NORMAL_BUTTON.into(),
-                                    ..default()
-                                },
-                                MenuButtonAction::Settings,
-                            ))
-                            .with_children(|parent| {
-                                let icon = asset_server.load("textures/Game Icons/wrench.png");
-                                parent.spawn(ImageBundle {
-                                    style: button_icon_style.clone(),
-                                    image: UiImage::new(icon),
-                                    ..default()
-                                });
-                                parent.spawn(TextBundle::from_section(
-                                    "Settings",
-                                    button_text_style.clone(),
-                                ));
-                            });
-                        parent
-                            .spawn((
-                                ButtonBundle {
-                                    style: button_style,
-                                    background_color: NORMAL_BUTTON.into(),
-                                    ..default()
-                                },
-                                MenuButtonAction::Quit,
-                            ))
-                            .with_children(|parent| {
-                                let icon = asset_server.load("textures/Game Icons/exitRight.png");
-                                parent.spawn(ImageBundle {
-                                    style: button_icon_style,
-                                    image: UiImage::new(icon),
-                                    ..default()
-                                });
-                                parent.spawn(TextBundle::from_section("Quit", button_text_style));
-                            });
+                        
+                        
                     });
             });
     }

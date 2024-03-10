@@ -99,18 +99,41 @@ pub fn room_enter(
         ) {
             if let Some(prev_pos) = prev_room_pos.as_ref() {
                 if *prev_pos != room_transform.translation {
-                    create_walls(&mut commands, &assets, room.width, room.height,room_transform.translation);
-                    create_doorway(&mut commands, &assets, room.width, room.height, room_transform.translation);
+                    create_walls_and_doorway(
+                        &mut commands,
+                        &assets,
+                        room.width,
+                        room.height,
+                        room_transform.translation,
+                        &room.doors
+                    );
+
                     room_transform.translation.z = -30.;
                     println!(
                         "Entered the room! Transform: {:?}",
                         room_transform.translation
                     );
-                } 
+                    // Assuming room is a struct or an object with a field named doors
+                    if !room.doors.is_empty() {
+                        println!("Doors:");
+                        for door in &room.doors {
+                            println!("x: {}, y: {}", door.x, door.y);
+                        }
+                    } else {
+                        println!("No doors exist in this room.");
+                    }
+                }
             } else {
                 // This is the first room the player enters
-                create_walls(&mut commands, &assets, room.width, room.height, room_transform.translation);
-                create_doorway(&mut commands, &assets, room.width, room.height, room_transform.translation);
+                create_walls_and_doorway(
+                    &mut commands,
+                    &assets,
+                    room.width,
+                    room.height,
+                    room_transform.translation,
+                    &room.doors
+                );
+
                 room_transform.translation.z = -30.;
                 println!(
                     "Entered the room for the first time! Transform: {:?}",
@@ -118,8 +141,7 @@ pub fn room_enter(
                 );
             }
             *prev_room_pos = Some(room_transform.translation);
-        }
-        else {
+        } else {
             room_transform.translation.z = 5.;
             commands
                 .entity(room_entity)
@@ -141,100 +163,117 @@ fn is_inside_room(
     let room_min = room_location.xy() - room_size / 2.0;
     let room_max = room_location.xy() + room_size / 2.0;
 
+
     player_location.x > room_min.x
         && player_location.x < room_max.x
         && player_location.y > room_min.y
         && player_location.y < room_max.y
 }
 
-fn create_walls(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, height: f32, room_location: Vec3) {
+fn create_walls_and_doorway(
+    commands: &mut Commands,
+    assets: &Res<AssetServer>,
+    width: f32,
+    height: f32,
+    room_location: Vec3,
+    door_locations: &Vec<Vec2>,
+) {
     let room_size = Vec2::new(width, height);
     let room_min = room_location.xy() - room_size / 2.0;
     let room_max = room_location.xy() + room_size / 2.0;
     let mut x_wall = room_min.x;
     let mut y_wall = room_min.y;
 
-    while x_wall < room_max.x {
-        let texture = assets.load("wall.png");
-        commands.spawn((
-            SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(x_wall, room_max.y, 10.0),
-                    scale: Vec3::splat(1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            TileCollider,
-        ));
+    while x_wall < room_max.x - TILE_SIZE {
+        let mut skip_wall = false;
+        for door_pos in door_locations.iter() {
+            if (x_wall + TILE_SIZE > door_pos.x) && (x_wall < door_pos.x + TILE_SIZE) {
+                skip_wall = true;
+                break;
+            }
+        }
+
+        if skip_wall {
+            x_wall += TILE_SIZE;
+            continue; // Skip spawning wall segments under the doorway
+        }
 
         let texture = assets.load("wall.png");
-        commands.spawn((
-            SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(x_wall, room_min.y, 10.0),
-                    scale: Vec3::splat(1.),
-                    ..Default::default()
-                },
+        commands.spawn(SpriteBundle {
+            texture,
+            transform: Transform {
+                translation: Vec3::new(x_wall, room_max.y, 10.0),
+                scale: Vec3::splat(1.),
                 ..Default::default()
             },
-            TileCollider,
-        ));
-
-        x_wall += TILE_SIZE
-    }
-    while y_wall < room_max.y {
-        let texture = assets.load("wall.png");
-        commands.spawn((
-            SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(room_max.x , y_wall, 10.0),
-                    scale: Vec3::splat(1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            TileCollider,
-        ));
-
-        let texture = assets.load("wall.png");
-        commands.spawn((
-            SpriteBundle {
-                texture,
-                transform: Transform {
-                    translation: Vec3::new(room_min.x, y_wall, 10.0),
-                    scale: Vec3::splat(1.),
-                    ..Default::default()
-                },
-                ..Default::default()
-            },
-            TileCollider,
-        ));
-
-        y_wall += TILE_SIZE
-    }
-}
-
-fn create_doorway(commands: &mut Commands, assets: &Res<AssetServer>, width: f32, height: f32, room_location: Vec3) {
-    let texture = assets.load("sand.png");
-    let room_size = Vec2::new(width, height);
-    let room_min = room_location.xy() - room_size / 2.0;
-    let room_max = room_location.xy() + room_size / 2.0;
-    
-    // Determine the position of the doorway
-    let doorway_position = Vec3::new(room_max.x, room_location.y, 10.0); // Adjust the position as needed
-    
-    // Spawn the doorway sprite
-    commands.spawn(SpriteBundle {
-        texture,
-        transform: Transform {
-            translation: doorway_position,
-            scale: Vec3::splat(1.),
             ..Default::default()
-        },
-        ..Default::default()
-    });
+        });
+
+        let texture = assets.load("wall.png");
+        commands.spawn(SpriteBundle {
+            texture,
+            transform: Transform {
+                translation: Vec3::new(x_wall, room_min.y, 10.0),
+                scale: Vec3::splat(1.),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+        x_wall += TILE_SIZE;
+    }
+
+    while y_wall < room_max.y {
+        let mut skip_wall = false;
+        for door_pos in door_locations.iter() {
+            if (y_wall + TILE_SIZE > door_pos.y) && (y_wall < door_pos.y + TILE_SIZE) {
+                skip_wall = true;
+                break;
+            }
+        }
+
+        if skip_wall {
+            y_wall += TILE_SIZE;
+            continue; // Skip spawning wall segments under the doorway
+        }
+
+        let texture = assets.load("wall.png");
+        commands.spawn(SpriteBundle {
+            texture,
+            transform: Transform {
+                translation: Vec3::new(room_max.x, y_wall, 10.0),
+                scale: Vec3::splat(1.),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+        let texture = assets.load("wall.png");
+        commands.spawn(SpriteBundle {
+            texture,
+            transform: Transform {
+                translation: Vec3::new(room_min.x, y_wall, 10.0),
+                scale: Vec3::splat(1.),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+
+        y_wall += TILE_SIZE;
+    }
+
+    // Spawn the doorway sprite
+    for door_location in door_locations {
+        let doorway_texture = assets.load("sand.png");
+
+        commands.spawn(SpriteBundle {
+            texture: doorway_texture,
+            transform: Transform {
+                translation:  Vec3::new(door_location.x,door_location.y,10.),
+                scale: Vec3::splat(1.),
+                ..Default::default()
+            },
+            ..Default::default()
+        });
+    }
 }
